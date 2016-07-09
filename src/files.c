@@ -5,6 +5,10 @@
 #include "hack.h"
 #include "dlb.h"
 
+#ifdef SQLITE
+#include <sqlite3.h>
+#endif
+
 #ifdef TTY_GRAPHICS
 #include "wintty.h" /* more() */
 #endif
@@ -3666,5 +3670,29 @@ int bufsz;
 }
 
 /* ----------  END TRIBUTE ----------- */
+
+#ifdef SQLITE
+void
+sql_start_game()
+{
+    const char* stats =  fqname("stats.db", SCOREPREFIX, 0);
+    sqlite3 *db = 0;
+    sqlite3_open(stats, &db);
+
+    sqlite3_stmt *stmt = 0;
+    sqlite3_prepare(db,
+      "INSERT INTO games (plname, start_time) VALUES (?, ?)",
+      -1,
+      &stmt,
+      0);
+
+    sqlite3_bind_text(stmt, 1, plname, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, urealtime.start_timing);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+}
+#endif
 
 /*files.c*/

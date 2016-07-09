@@ -769,6 +769,10 @@ E boolean FDECL(read_tribute, (const char *, const char *, int,
                                char *, int, unsigned));
 E boolean FDECL(Death_quote, (char *, int));
 
+#ifdef SQLITE
+E void NDECL(sql_start_game);
+#endif
+
 /* ### fountain.c ### */
 
 E void FDECL(floating_above, (const char *));

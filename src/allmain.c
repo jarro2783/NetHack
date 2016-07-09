@@ -599,6 +599,10 @@ newgame()
     (void) time(&urealtime.restored);
 #endif
 
+#ifdef SQLITE
+    sql_start_game();
+#endif
+
     /* Success! */
     welcome(TRUE);
     return;
