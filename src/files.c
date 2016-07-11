@@ -210,7 +210,7 @@ STATIC_DCL int FDECL(open_levelfile_exclusively, (const char *, int, int));
 
 #ifdef SQLITE
 STATIC_DCL const char* NDECL(sql_stats_file);
-STATIC_DCL const sqlite3* NDECL(sql_open_db);
+STATIC_DCL sqlite3* NDECL(sql_open_db);
 STATIC_DCL void FDECL(sql_close_db, (sqlite3*));
 STATIC_DCL int FDECL(sql_get_game, (sqlite3* db, const char* name));
 #endif
@@ -3685,7 +3685,7 @@ sql_stats_file()
     return fqname("stats.db", SCOREPREFIX, 0);
 }
 
-const sqlite3*
+sqlite3*
 sql_open_db()
 {
     sqlite3* db = 0;
@@ -3716,7 +3716,7 @@ sql_start_game()
       0);
 
     sqlite3_bind_text(stmt, 1, plname, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, urealtime.start_timing);
+    sqlite3_bind_int(stmt, 2, urealtime.restored);
 
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -3751,7 +3751,7 @@ sqlite3* db;
         0);
 
     sqlite3_bind_text(stmt, 1, plname, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, urealtime.start_timing);
+    sqlite3_bind_int(stmt, 2, urealtime.restored);
 
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -3793,7 +3793,7 @@ sql_end_session()
         &stmt,
         0);
 
-    sqlite3_bind_int(stmt, 1, urealtime.finish_time);
+    sqlite3_bind_int(stmt, 1, getnow());
     sqlite3_bind_int(stmt, 2, game);
 
     sqlite3_step(stmt);
@@ -3818,7 +3818,7 @@ sql_end_game()
         &stmt,
         0);
 
-    sqlite3_bind_int(stmt, 1, urealtime.finish_time);
+    sqlite3_bind_int(stmt, 1, getnow());
     sqlite3_bind_text(stmt, 2, plname, -1, SQLITE_STATIC);
 
     sqlite3_step(stmt);
