@@ -771,6 +771,10 @@ E boolean FDECL(Death_quote, (char *, int));
 
 #ifdef SQLITE
 E void NDECL(sql_start_game);
+E void NDECL(sql_start_session);
+E void FDECL(sql_start_session_db, (sqlite3*));
+E void NDECL(sql_end_session);
+E void NDECL(sql_end_game);
 #endif
 
 /* ### fountain.c ### */

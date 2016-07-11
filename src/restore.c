@@ -892,6 +892,11 @@ register int fd;
     restoring = FALSE;
     clear_nhwindow(WIN_MESSAGE);
 
+    #ifdef SQLITE
+    /* start sqlite session */
+    sql_start_session();
+    #endif
+
     /* Success! */
     welcome(FALSE);
     check_special_room(FALSE);

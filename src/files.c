@@ -208,6 +208,13 @@ STATIC_DCL boolean FDECL(copy_bytes, (int, int));
 STATIC_DCL int FDECL(open_levelfile_exclusively, (const char *, int, int));
 #endif
 
+#ifdef SQLITE
+STATIC_DCL const char* NDECL(sql_stats_file);
+STATIC_DCL const sqlite3* NDECL(sql_open_db);
+STATIC_DCL void FDECL(sql_close_db, (sqlite3*));
+STATIC_DCL int FDECL(sql_get_game, (sqlite3* db, const char* name));
+#endif
+
 /*
  * fname_encode()
  *
@@ -3672,15 +3679,37 @@ int bufsz;
 /* ----------  END TRIBUTE ----------- */
 
 #ifdef SQLITE
+const char*
+sql_stats_file()
+{
+    return fqname("stats.db", SCOREPREFIX, 0);
+}
+
+const sqlite3*
+sql_open_db()
+{
+    sqlite3* db = 0;
+
+    const char* stats = sql_stats_file();
+    sqlite3_open(stats, &db);
+
+    return db;
+}
+
+void
+sql_close_db(db)
+sqlite3* db;
+{
+    sqlite3_close(db);
+}
+
 void
 sql_start_game()
 {
-    const char* stats =  fqname("stats.db", SCOREPREFIX, 0);
-    sqlite3 *db = 0;
-    sqlite3_open(stats, &db);
+    sqlite3* db = sql_open_db();
 
-    sqlite3_stmt *stmt = 0;
-    sqlite3_prepare(db,
+    sqlite3_stmt* stmt = 0;
+    sqlite3_prepare_v2(db,
       "INSERT INTO games (plname, start_time) VALUES (?, ?)",
       -1,
       &stmt,
@@ -3691,8 +3720,113 @@ sql_start_game()
 
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+
+    sql_start_session_db(db);
+
     sqlite3_close(db);
 }
+
+void
+sql_start_session()
+{
+    sqlite3* db = sql_open_db();
+
+    sql_start_session_db(db);
+
+    sqlite3_close(db);
+}
+
+void
+sql_start_session_db(db)
+sqlite3* db;
+{
+    sqlite3_stmt* stmt = 0;
+
+    sqlite3_prepare_v2(db,
+        "INSERT INTO sessions (game, start_time) VALUES ("
+          "(SELECT MAX(id) FROM games WHERE plname = ?)"
+          ", ?)",
+        -1,
+        &stmt,
+        0);
+
+    sqlite3_bind_text(stmt, 1, plname, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, urealtime.start_timing);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+}
+
+int
+sql_get_game(sqlite3* db, const char* name)
+{
+    sqlite3_stmt* stmt = 0;
+
+    sqlite3_prepare_v2(db,
+        "SELECT id FROM games WHERE plname = ?",
+        -1,
+        &stmt,
+        0);
+
+    sqlite3_bind_text(stmt, 1, plname, -1, SQLITE_STATIC);
+
+    sqlite3_step(stmt);
+    int game = sqlite3_column_int(stmt, 0);
+    sqlite3_finalize(stmt);
+
+    return game;
+}
+
+void
+sql_end_session()
+{
+    sqlite3* db = sql_open_db();
+
+    int game = sql_get_game(db, plname);
+
+    sqlite3_stmt* stmt = 0;
+
+    sqlite3_prepare_v2(db,
+        "UPDATE sessions SET end_time = :end WHERE "
+        "id = (SELECT MAX(id) FROM sessions WHERE game = :game)",
+        -1,
+        &stmt,
+        0);
+
+    sqlite3_bind_int(stmt, 1, urealtime.finish_time);
+    sqlite3_bind_int(stmt, 2, game);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    sql_close_db(db);
+}
+
+void
+sql_end_game()
+{
+    sql_end_session();
+
+    sqlite3* db = sql_open_db();
+
+    sqlite3_stmt* stmt = 0;
+
+    sqlite3_prepare_v2(db,
+        "UPDATE games SET end_time = :end WHERE "
+        "id = (SELECT MAX(id) FROM games WHERE plname = :name)",
+        -1,
+        &stmt,
+        0);
+
+    sqlite3_bind_int(stmt, 1, urealtime.finish_time);
+    sqlite3_bind_text(stmt, 2, plname, -1, SQLITE_STATIC);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    sql_close_db(db);
+}
+
 #endif
 
 /*files.c*/

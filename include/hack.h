@@ -10,6 +10,10 @@
 #endif
 #include "lint.h"
 
+#ifdef SQLITE
+#include <sqlite3.h>
+#endif
+
 #define TELL 1
 #define NOTELL 0
 #define ON 1

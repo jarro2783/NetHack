@@ -90,6 +90,7 @@ dosave()
         program_state.done_hup = 0;
 #endif
         if (dosave0()) {
+            sql_end_session();
             u.uhp = -1; /* universal game's over indicator */
             /* make sure they see the Saving message */
             display_nhwindow(WIN_MESSAGE, TRUE);
