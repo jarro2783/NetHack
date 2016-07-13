@@ -955,7 +955,7 @@ int how;
     urealtime.realtime += (long) (endtime - urealtime.restored);
 
 #ifdef SQLITE
-    sql_end_game();
+    sql_end_game(how);
 #endif
 
     /* Sometimes you die on the first move.  Life's not fair.

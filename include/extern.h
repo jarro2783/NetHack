@@ -774,7 +774,7 @@ E void NDECL(sql_start_game);
 E void NDECL(sql_start_session);
 E void FDECL(sql_start_session_db, (sqlite3*));
 E void NDECL(sql_end_session);
-E void NDECL(sql_end_game);
+E void FDECL(sql_end_game, (int how));
 #endif
 
 /* ### fountain.c ### */
