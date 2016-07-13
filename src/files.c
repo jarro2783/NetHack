@@ -3763,7 +3763,7 @@ sql_get_game(sqlite3* db, const char* name)
     sqlite3_stmt* stmt = 0;
 
     sqlite3_prepare_v2(db,
-        "SELECT id FROM games WHERE plname = ?",
+        "SELECT MAX(id) FROM games WHERE plname = ?",
         -1,
         &stmt,
         0);
