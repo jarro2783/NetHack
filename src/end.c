@@ -954,10 +954,6 @@ int how;
     endtime = getnow();
     urealtime.realtime += (long) (endtime - urealtime.restored);
 
-#ifdef SQLITE
-    sql_end_game(how);
-#endif
-
     /* Sometimes you die on the first move.  Life's not fair.
      * On those rare occasions you get hosed immediately, go out
      * smiling... :-)  -3.
@@ -1277,6 +1273,11 @@ int how;
     if (have_windows && !iflags.toptenwin)
         exit_nhwindows((char *) 0), have_windows = FALSE;
     topten(how, endtime);
+
+#ifdef SQLITE
+    sql_end_game(how);
+#endif
+
     if (have_windows)
         exit_nhwindows((char *) 0);
 
