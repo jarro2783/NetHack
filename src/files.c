@@ -3710,8 +3710,8 @@ sql_start_game()
 
     sqlite3_stmt* stmt = 0;
     sqlite3_prepare_v2(db,
-      "INSERT INTO games (plname, start_time, role, race, gender) "
-      "VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO games (plname, start_time, role, race, gender, alignment) "
+      "VALUES (?, ?, ?, ?, ?, ?)",
       -1,
       &stmt,
       0);
@@ -3722,6 +3722,7 @@ sql_start_game()
     sqlite3_bind_text(stmt, 4, urace.noun, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 5, flags.female ? "female" : "male", -1,
         SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, aligns[u.ualign.type].adj, -1, SQLITE_STATIC);
 
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
