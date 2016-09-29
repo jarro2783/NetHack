@@ -3788,13 +3788,16 @@ sql_end_session()
 {
     sqlite3* db = sql_open_db();
 
+    sqlite3_exec(db, "BEGIN", 0, 0, 0);
+
     int game = sql_get_game(db, plname);
 
     sqlite3_stmt* stmt = 0;
 
     sqlite3_prepare_v2(db,
-        "UPDATE sessions SET end_time = :end WHERE "
-        "id = (SELECT MAX(id) FROM sessions WHERE game = :game)",
+        "UPDATE games SET playing_time = playing_time + "
+        "(SELECT :end - start_time FROM sessions WHERE game = :game) "
+        "WHERE id = :game",
         -1,
         &stmt,
         0);
@@ -3804,6 +3807,20 @@ sql_end_session()
 
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+
+    stmt = 0;
+
+    sqlite3_prepare_v2(db,
+        "DELETE FROM sessions WHERE game = :game",
+        -1,
+        &stmt,
+        0);
+
+    sqlite3_bind_int(stmt, 1, game);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    sqlite3_exec(db, "COMMIT", 0, 0, 0);
 
     sql_close_db(db);
 }
