@@ -3710,8 +3710,9 @@ sql_start_game()
 
     sqlite3_stmt* stmt = 0;
     sqlite3_prepare_v2(db,
-      "INSERT INTO games (plname, start_time, role, race, gender, alignment) "
-      "VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO games (plname, start_time, role, race, gender,"
+      " alignment, playing_time) "
+      "VALUES (?, ?, ?, ?, ?, ?, 0)",
       -1,
       &stmt,
       0);
