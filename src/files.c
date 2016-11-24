@@ -3852,8 +3852,8 @@ int how;
     sqlite3_bind_int(stmt, 1, getnow());
     sqlite3_bind_text(stmt, 2, killstring, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, how == ASCENDED ? 1 : 0);
-    sqlite3_bind_text(stmt, 4, plname, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 5, u.urexp);
+    sqlite3_bind_int(stmt, 4, u.urexp);
+    sqlite3_bind_text(stmt, 5, plname, -1, SQLITE_STATIC);
 
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
