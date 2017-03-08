@@ -209,6 +209,7 @@ STATIC_DCL int FDECL(open_levelfile_exclusively, (const char *, int, int));
 #endif
 
 #ifdef SQLITE
+STATIC_DCL int32_t NDECL(encodeconduct);
 STATIC_DCL const char* NDECL(sql_stats_file);
 STATIC_DCL sqlite3* NDECL(sql_open_db);
 STATIC_DCL void FDECL(sql_close_db, (sqlite3*));
@@ -3826,6 +3827,39 @@ sql_end_session()
     sql_close_db(db);
 }
 
+int32_t
+encodeconduct()
+{
+    int32_t e = 0;
+
+    if (!u.uconduct.food)
+        e |= 1L << 0;
+    if (!u.uconduct.unvegan)
+        e |= 1L << 1;
+    if (!u.uconduct.unvegetarian)
+        e |= 1L << 2;
+    if (!u.uconduct.gnostic)
+        e |= 1L << 3;
+    if (!u.uconduct.weaphit)
+        e |= 1L << 4;
+    if (!u.uconduct.killer)
+        e |= 1L << 5;
+    if (!u.uconduct.literate)
+        e |= 1L << 6;
+    if (!u.uconduct.polypiles)
+        e |= 1L << 7;
+    if (!u.uconduct.polyselfs)
+        e |= 1L << 8;
+    if (!u.uconduct.wishes)
+        e |= 1L << 9;
+    if (!u.uconduct.wisharti)
+        e |= 1L << 10;
+    if (!num_genocides())
+        e |= 1L << 11;
+
+    return e;
+}
+
 void
 sql_end_game(how)
 int how;
@@ -3842,7 +3876,8 @@ int how;
 
     sqlite3_prepare_v2(db,
         "UPDATE games SET end_time = :end, death = :death, ascended = :asc, "
-        "score = :score "
+        "score = :score, conducts = :conducts, hp = :hp, hpmax = :hpmax, "
+        "depth = :depth, maxdepth = :maxdepth "
         "WHERE "
         "id = (SELECT MAX(id) FROM games WHERE plname = :name)",
         -1,
@@ -3853,9 +3888,19 @@ int how;
     sqlite3_bind_text(stmt, 2, killstring, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, how == ASCENDED ? 1 : 0);
     sqlite3_bind_int(stmt, 4, u.urexp);
-    sqlite3_bind_text(stmt, 5, plname, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 5, encodeconduct());
+    sqlite3_bind_int(stmt, 6, u.uhp);
+    sqlite3_bind_int(stmt, 7, u.uhpmax);
+    sqlite3_bind_int(stmt, 8, depth(&u.uz));
+    sqlite3_bind_int(stmt, 9, deepest_lev_reached(TRUE));
 
-    sqlite3_step(stmt);
+    // This one comes after everything and needs to have its number adjusted
+    // if new fields are added.
+    sqlite3_bind_text(stmt, 10, plname, -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        printf("sqlite error: %s\n", sqlite3_errmsg(db));
+    }
     sqlite3_finalize(stmt);
 
     sql_close_db(db);
